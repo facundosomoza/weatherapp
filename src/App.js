@@ -1,24 +1,65 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import SearchWeather from "./SearchWeather";
+import Container from "react-bootstrap/Container";
 
-function App() {
+import WeatherCity from "./WeatherCity";
+
+function App({ showResetButton }) {
+  const [weather, setWeather] = useState(null);
+
+  const [showGeoInfo, setShowGeoInfo] = useState(true);
+
+  const API_KEY = "3d3b9b32aebc72e5e766753be6d6e4d5";
+
+  const getWeatherData = (position) => {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`;
+
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setWeather(data);
+      });
+  };
+
+  const handleGetPositionError = () => {
+    console.log("Error al obtener la geolocalizacion");
+  };
+
+  useEffect(initWeather, []);
+
+  function initWeather() {
+    navigator.geolocation.getCurrentPosition(
+      getWeatherData,
+      handleGetPositionError
+    );
+  }
+
+  function getGeoInfo() {
+    return showGeoInfo ? <WeatherCity city={weather}></WeatherCity> : <></>;
+  }
+
+  const reset = () => {
+    setShowGeoInfo(true);
+  };
+
+  const handleSearch = () => {
+    setShowGeoInfo(false);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <SearchWeather
+        showSearchResult={!showGeoInfo}
+        onSearch={handleSearch}
+        onReset={reset}
+      ></SearchWeather>
+
+      <Container>{getGeoInfo()}</Container>
+    </>
   );
 }
 
